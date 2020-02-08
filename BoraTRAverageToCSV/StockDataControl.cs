@@ -26,8 +26,8 @@ namespace BoraTRAverageToCSV
         {
             //引数の日付範囲＋MA分必要なデータを計算する
             var DatetimeList = yahooCon.TradeIndexs.Select(x => x.date).Distinct().OrderBy(x => x).ToList();
-            var fromDateIndex = DatetimeList.IndexOf(fromDatetime);
-            var toDateIndex = DatetimeList.IndexOf(toDatetime);
+            var fromDateIndex = DatetimeList.FindIndex(x => fromDatetime <= x);
+            var toDateIndex = DatetimeList.FindLastIndex(x => x <= toDatetime);
             //指定した日付が無い場合は終了
             if (fromDateIndex == -1 || toDateIndex == -1)
             {

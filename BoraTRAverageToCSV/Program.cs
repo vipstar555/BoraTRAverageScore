@@ -48,9 +48,33 @@ namespace BoraTRAverageToCSV
             var stockData = new StockDataControl();
             var stockList = stockData.GetAllCodeAddMAStockData(fromDatetime, toDatetime, MA).ToList();
 
+            //コード一覧を取得
+            var codeList = stockList.Select(x => x.Code).Distinct();
+            //TR・ボラデータ作成
+            foreach(var code in codeList)
+            {
+                var codeStockList = stockList.Where(x => x.Code == code).OrderBy(x => x.Date).Select(x =>
+                    new Price
+                    {
+                        Code = x.Code,
+                        DateTime = x.Date,
+                        closePrice = x.ClosePrice,
+                        highPrice = x.HighPrice,
+                        lowPrice = x.LowPrice,
+                    }
+                    );
+                var TRData = BoraTRControl.BoraTRCalc(codeStockList.ToArray());
+                //TR・ボラのMA作成
+                var TRAveArray = Technical.MovingAverage(TRData.OrderBy(x => x.DateTime).Select(x => x.TRPercent).ToArray(), 5).ToArray();
+                var BoraAveArray = Technical.MovingAverage(TRData.OrderBy(x => x.DateTime).Select(x => x.BoraPercent).ToArray(), 5).ToArray();
+
+                //出力データの成形
+
+                continue;
+            }
+
             Console.WriteLine("Enterを押してください。");
             Console.ReadLine();
-            //BoraTR
         }
     }
 }
