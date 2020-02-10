@@ -48,10 +48,13 @@ namespace BoraTRAverageToCSV
                 x => new Stock {
                     Date = x.date,
                     Code = x.code,
+                    Name = x.price.codeList.name,
                     ClosePrice = x.price.closePrice,
                     HighPrice = x.price.highPrice,
                     LowPrice = x.price.lowPrice,
                     OpenPrice = x.price.openPrice,
+                    Cap = x.marketCapitalization,
+                    Volume = x.price.volume,
                 }
                 );
             //分割・併合データ
@@ -111,9 +114,12 @@ namespace BoraTRAverageToCSV
     {
         public DateTime Date { get; set; }
         public int Code { get; set; }
+        public string Name { get; set; }
         public double? HighPrice { get; set; }
         public double? LowPrice { get; set; }
         public double? OpenPrice { get; set; }
         public double? ClosePrice { get; set; }
+        public long Volume { get; set; }
+        public long Cap { get; set; }
     }
 }

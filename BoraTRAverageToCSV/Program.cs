@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
 
 namespace BoraTRAverageToCSV
 {
@@ -51,30 +53,77 @@ namespace BoraTRAverageToCSV
             //コード一覧を取得
             var codeList = stockList.Select(x => x.Code).Distinct();
             //TR・ボラデータ作成
-            foreach(var code in codeList)
+            //CSV作成準備
+            using (var sw = new StreamWriter(@"D:\デスクトップ\ボラTR平均\ボラTR平均.csv", false, Encoding.UTF8))
             {
-                var codeStockList = stockList.Where(x => x.Code == code).OrderBy(x => x.Date).Select(x =>
-                    new Price
+                var _csvData = new CSVData();
+                PropertyInfo[] infoArray = _csvData.GetType().GetProperties();
+                //タイトル書き込み
+                foreach (var info in infoArray)
+                {
+                    sw.Write($"{info.Name},");
+                }
+                sw.WriteLine();
+                foreach (var code in codeList)
+                {
+                    var codeStockList = stockList.Where(x => x.Code == code).OrderBy(x => x.Date).Select(x =>
+                        new Price
+                        {
+                            Code = x.Code,
+                            Name = x.Name,
+                            DateTime = x.Date,
+                            closePrice = x.ClosePrice,
+                            highPrice = x.HighPrice,
+                            lowPrice = x.LowPrice,
+                            Cap = x.Cap,
+                            Volume = x.Volume,
+                        }
+                        ).ToArray();
+                    var TRData = BoraTRControl.BoraTRCalc(codeStockList);
+                    //TR・ボラのMA作成
+                    var TRAveArray = Technical.MovingAverage(TRData.OrderBy(x => x.DateTime).Select(x => x.TRPercent).ToArray(), 5).ToArray();
+                    var BoraAveArray = Technical.MovingAverage(TRData.OrderBy(x => x.DateTime).Select(x => x.BoraPercent).ToArray(), 5).ToArray();
+
+                    for (int i = MA; i < codeStockList.Count(); i++)
                     {
-                        Code = x.Code,
-                        DateTime = x.Date,
-                        closePrice = x.ClosePrice,
-                        highPrice = x.HighPrice,
-                        lowPrice = x.LowPrice,
+                        var csvData = new CSVData
+                        {
+                            Code = codeStockList[i].Code,
+                            Name = codeStockList[i].Name,
+                            DateTime = codeStockList[i].DateTime,
+                            Cap = codeStockList[i].Cap,
+                            Volume = codeStockList[i].Volume,
+                            BoraAverage = BoraAveArray[i],
+                            TRAverage = TRAveArray[i],
+                        };
+                        //データ書き込み
+                        foreach(var info in infoArray)
+                        {
+                            sw.Write($"{info.GetValue(csvData, null)},");
+                        }
+                        sw.WriteLine();
                     }
-                    );
-                var TRData = BoraTRControl.BoraTRCalc(codeStockList.ToArray());
-                //TR・ボラのMA作成
-                var TRAveArray = Technical.MovingAverage(TRData.OrderBy(x => x.DateTime).Select(x => x.TRPercent).ToArray(), 5).ToArray();
-                var BoraAveArray = Technical.MovingAverage(TRData.OrderBy(x => x.DateTime).Select(x => x.BoraPercent).ToArray(), 5).ToArray();
-
-                //出力データの成形
-
-                continue;
-            }
+                    //出力データの成形
+                    //プロパティTypeをループ取得
+                    continue;
+                }
+            }            
 
             Console.WriteLine("Enterを押してください。");
             Console.ReadLine();
         }
+    }
+
+    class CSVData
+    {
+        public DateTime DateTime { get; set; }
+        public int Code { get; set; }
+        public string Name { get; set; }
+
+        public long Volume { get; set; }
+        public long Cap { get; set; }
+
+        public double? TRAverage { get; set; }
+        public double? BoraAverage { get; set; }
     }
 }

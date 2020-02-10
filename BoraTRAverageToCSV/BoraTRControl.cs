@@ -82,9 +82,12 @@ namespace BoraTRAverageToCSV
     {
         public DateTime DateTime { get; set; }
         public int Code { get; set; }
+        public string Name { get; set; }
         public double? highPrice { get; set; }
         public double? lowPrice { get; set; }
         public double? closePrice { get; set; }
+        public long Cap { get; set; }
+        public long Volume { get; set; }
     }
 
     public class BoraTR
